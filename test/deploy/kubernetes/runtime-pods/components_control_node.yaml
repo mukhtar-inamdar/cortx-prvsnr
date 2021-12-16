@@ -20,6 +20,8 @@ spec:
     metadata:
       labels:
         app: control-node
+        cortx.io/machine-id: 9995f539f4f770e2a3fe9e2e615c32a8
+        cortx.io/service-type: cortx-control
     spec:
       hostname: control-node
       nodeSelector:

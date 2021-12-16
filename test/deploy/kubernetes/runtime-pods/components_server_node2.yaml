@@ -20,6 +20,8 @@ spec:
     metadata:
       labels:
         app: server-node2
+        cortx.io/machine-id: eee340f79047df9bb52fa460615c32a5
+        cortx.io/service-type: cortx-server
     spec:
       hostname: server-node2
       nodeSelector:

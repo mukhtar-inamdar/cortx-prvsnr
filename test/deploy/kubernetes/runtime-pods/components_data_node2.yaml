@@ -20,6 +20,8 @@ spec:
     metadata:
       labels:
         app: data-node2
+        cortx.io/machine-id: bbb340f79047df9bb52fa460615c32a5
+        cortx.io/service-type: cortx-data
     spec:
       hostname: data-node2
       nodeSelector:
@@ -159,7 +161,7 @@ spec:
         - name: solution-config
           mountPath: /etc/cortx/solution
         - name: node-id
-          mountPath: /etc/cortx/solution/node      
+          mountPath: /etc/cortx/solution/node
         - name: shared-node2
           mountPath: /share
         - name: local-node2
