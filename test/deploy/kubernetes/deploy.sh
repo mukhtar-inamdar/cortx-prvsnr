@@ -132,6 +132,12 @@ else
     kubectl create configmap storage-node3-id --from-literal=id=ccc8700fe6797ed532e311b0615c32a7 --namespace "$NAMESPACE";
 fi
 
+# create service account and [cluster]role bindings
+if [ $REDEFPODS = true ]; then
+    kubectl apply -f "$BASEPATH"/solution-config/ha_service_account.yaml
+    kubectl apply -f "$BASEPATH"/solution-config/ha_cluster_role.yaml
+    kubectl apply -f "$BASEPATH"/solution-config/ha_cluster_role_binding.yaml
+fi
 
 # Create Secrets
 kubectl apply -f "$BASEPATH"/solution-config/secrets.yaml --namespace $NAMESPACE;

@@ -23,6 +23,7 @@ spec:
         cortx.io/machine-id: 1115f539f4f770e2a3fe9e2e615c32a8
         cortx.io/service-type: cortx-ha
     spec:
+      serviceAccountName: cortx-ha
       automountServiceAccountToken: true
       hostname: ha-node
       nodeSelector:
@@ -51,9 +52,6 @@ spec:
         - /bin/sh
         - -c
         - set -x;
-          mkdir -p /opt/seagate/cortx/ha/bin;
-          echo -e "#!/bin/bash\necho $*" > /opt/seagate/cortx/ha/bin/ha_setup;
-          chmod +x /opt/seagate/cortx/ha/bin/ha_setup;
           /opt/seagate/cortx/provisioner/bin/cortx_deploy -f /etc/cortx/solution -c yaml:///etc/cortx/cluster.conf;
         volumeMounts:
         - name: solution-config
@@ -67,17 +65,17 @@ spec:
         - name: cortx-secret
           mountPath: /etc/cortx/solution/secret
       containers:
-      - name: cortx-ha
+      - name: cortx-ha-fault-tolerance
         image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8081
           name: "port-8081"
+        command:
+          - /bin/sh
         args:
-        - /bin/sh
-        - -c
-        - set -x;
-          sleep infinity;
+          - -c
+          - /opt/seagate/cortx/ha/bin/ha_start -s fault_tolerance -c yaml:///etc/cortx/cluster.conf
         volumeMounts:
         - name: solution-config
           mountPath: /etc/cortx/solution
@@ -87,3 +85,67 @@ spec:
           mountPath: /share
         - name: local-node1
           mountPath: /etc/cortx
+          - name: cortx-secret
+            mountPath: /etc/cortx/solution/secret
+            readOnly: true
+        env:
+          - name: UDS_CLOUD_CONTAINER_NAME
+            value: cortx-ha
+        securityContext:
+          allowPrivilegeEscalation: false
+      - name: cortx-ha-health-monitor
+        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8081
+          name: "port-8081"
+        command:
+          - /bin/sh
+        args:
+          - -c
+          - /opt/seagate/cortx/ha/bin/ha_start -s health_monitor -c yaml:///etc/cortx/cluster.conf
+        volumeMounts:
+        - name: solution-config
+          mountPath: /etc/cortx/solution
+        - name: node-id
+          mountPath: /etc/cortx/solution/node
+        - name: shared-node1
+          mountPath: /share
+        - name: local-node1
+          mountPath: /etc/cortx
+          - name: cortx-secret
+            mountPath: /etc/cortx/solution/secret
+            readOnly: true
+        env:
+          - name: UDS_CLOUD_CONTAINER_NAME
+            value: cortx-ha
+        securityContext:
+          allowPrivilegeEscalation: false
+      - name: cortx-ha-k8s-monitor
+        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8081
+          name: "port-8081"
+        command:
+          - /bin/sh
+        args:
+          - -c
+          - /opt/seagate/cortx/ha/bin/ha_start -s k8s_monitor -c yaml:///etc/cortx/cluster.conf
+        volumeMounts:
+        - name: solution-config
+          mountPath: /etc/cortx/solution
+        - name: node-id
+          mountPath: /etc/cortx/solution/node
+        - name: shared-node1
+          mountPath: /share
+        - name: local-node1
+          mountPath: /etc/cortx
+          - name: cortx-secret
+            mountPath: /etc/cortx/solution/secret
+            readOnly: true
+        env:
+          - name: UDS_CLOUD_CONTAINER_NAME
+            value: cortx-ha
+        securityContext:
+          allowPrivilegeEscalation: false
