@@ -1,0 +1,190 @@
+#!/bin/bash
+set -e;
+
+# Log Levels:
+DEBUG=1
+INFO=2
+WARNING=3
+ERROR=4
+FATAL=5
+DEFAULT_LOG_LEVEL=${DEFAULT_LOG_LEVEL:-$INFO}
+
+function log {
+    LEVEL=$1; shift
+    LOG_LEVEL=${LOG_LEVEL:-$DEFAULT_LOG_LEVEL}
+    [[ $LEVEL -lt $LOG_LEVEL ]] && return
+
+    echo "log: $*"
+}
+
+function show_usage {
+    echo -e "usage: $(basename $0) [-f SOLUTION-CONFIG] [-l LOG-LEVEL][-c CORTX-CONFIG-URL] [-o] [-d] [-v]"
+    echo -e "Where:"
+    echo -e "..."
+    echo -e " SOLUTION-CONFIG : Solution-Config directory containing -\
+                                config.yaml, cluster.yaml and secrets.yaml"
+    echo -e "                   (Default: /etc/cortx/solution)"
+    echo -e " LOG-LEVEL       : Log Level (Default: 2)"
+    echo -e "                   Supported log levels:"
+    echo -e "                   DEBUG=1, INFO=2, WARNING=3, ERROR=4, FATAL=5"
+    echo -e " CORTX-CONFIG-URL: URL of CORTX Configuration"
+    echo -e "                   (Default is yaml:///etc/cortx/cluster.conf)"
+    echo -e " FORCE OVER-RIDE : Force provisioning even after CORTX configuration."
+    echo -e " ENABLE DEBUG    : Enable Debugging CORTX Deployment (Default: False)"
+    echo -e " VALIDATE CONFIG : Validate constore and configmap config."
+    exit 1
+}
+
+function validate_config_file {
+    local config=$1
+    if [ ! -f $config ]; then
+        echo -e "ERROR: Config file $config not found, Provide correct config path."
+        return 1
+    fi
+}
+
+function yaml_config {
+    local config=$1
+    echo "yaml://$config"
+}
+
+function conf_get {
+    URL=$1; key=$2
+    val=$(conf $URL get $key)
+    val=$(echo $val | tr -d "["\" | tr -d "\"]")
+    echo $val
+}
+
+function apply_cluster_config {
+    log $INFO "cortx_setup config apply -f $(yaml_config $CLUSTER_INFO) -c '$CORTX_CONFSTORE' $FORCE_PROVISIONING"
+    cortx_setup config apply -f $(yaml_config $CLUSTER_INFO) -c "$CORTX_CONFSTORE" $FORCE_PROVISIONING;
+}
+
+function apply_common_config {
+    log $INFO "cortx_setup config apply -f $(yaml_config $CONFIG_INFO) -c '$CORTX_CONFSTORE' $FORCE_PROVISIONING"
+    cortx_setup config apply -f $(yaml_config $CONFIG_INFO) -c "$CORTX_CONFSTORE" $FORCE_PROVISIONING;
+}
+
+function deploy {
+    # Bootstrap Cluster
+    log $INFO "cortx_setup cluster bootstrap -c '$CORTX_CONFSTORE' $FORCE_PROVISIONING"
+    cortx_setup cluster bootstrap -c "$CORTX_CONFSTORE" $FORCE_PROVISIONING;
+}
+
+function upgrade {
+    # Upgrade cluster
+    log $INFO "cortx_setup cluster upgrade -c '$CORTX_CONFSTORE' $FORCE_PROVISIONING"
+    cortx_setup cluster upgrade -c "$CORTX_CONFSTORE" $FORCE_PROVISIONING;
+}
+
+function validate_config {
+    # Validate config
+    log $INFO "cortx_setup config validate -f $(yaml_config $CLUSTER_INFO) -c '$CORTX_CONFSTORE'"
+    cortx_setup config validate -f $(yaml_config $CLUSTER_INFO) -c "$CORTX_CONFSTORE" || return 1
+    log $INFO "cortx_setup config validate -f $(yaml_config $CONFIG_INFO) -c '$CORTX_CONFSTORE'"
+    cortx_setup config validate -f $(yaml_config $CONFIG_INFO) -c "$CORTX_CONFSTORE" || return 1
+}
+
+# Constants
+DEBUG_FLAG=false
+SOLUTION_CONFIG="/etc/cortx/solution"
+CORTX_CONFSTORE="yaml:///etc/cortx/cluster.conf"
+RELEASE_INFO="yaml:///opt/seagate/cortx/RELEASE.INFO"
+
+action="" # upgrade|deploy|downgrade|replace|recover|etc.
+
+while [ $# -gt 0 ];  do
+    case $1 in
+    -l )
+        shift 1
+        LOG_LEVEL=$1
+        ;;
+    -n )
+        shift 1
+        NODE_ID=$1
+        ;;
+    -d )
+        DEBUG_FLAG=true
+        ;;
+    -f )
+        shift 1
+        SOLUTION_CONFIG=$1
+        ;;
+    -c )
+        shift 1
+        CORTX_CONFSTORE=$1
+        ;;
+    -o )
+       FORCE_PROVISIONING="-o"
+       ;;
+    -h )
+        show_usage
+        ;;
+    -v )
+        VALIDATE_CONF="-v"
+        ;;
+    * )
+        echo -e "Invalid argument provided : $1"
+        show_usage
+        exit 1
+        ;;
+    esac
+    shift 1
+done
+
+# path for solution-config cluster.yaml and config.yaml files
+CONFIG_INFO="$SOLUTION_CONFIG/config.yaml"
+validate_config_file $CONFIG_INFO
+CLUSTER_INFO="$SOLUTION_CONFIG/cluster.yaml"
+validate_config_file $CLUSTER_INFO
+
+export PATH=$PATH:/opt/seagate/provisioner/bin
+
+node_id=`cat /etc/machine-id`
+cluster_id=$(conf_get $(yaml_config $CLUSTER_INFO) "cluster>id")
+log $INFO "Starting provisioning on node $node_id which is part of cluster $cluster_id."
+
+# Check current image version
+installed_version=$(conf_get $CORTX_CONFSTORE "node>$node_id>provisioning>version")
+# if current version is not available in confstore
+[[ $installed_version != "null" ]] && current_version=$(awk -F- '{print $2}' <<< $installed_version)
+
+release_version=$(conf_get $RELEASE_INFO "VERSION")
+# Below can be used when subversioning is considered.
+#update_prim_version=$(awk -F- '{print $1}' <<<  $release_version )
+image_version=$(awk -F- '{print $2}' <<<  $release_version)
+
+#  [[ $image_version != '0' ]] Is a temprory patch for community deployment for build number 0 condition and 
+#   needs to be removed as part of [EOS-27087]
+[[ $current_version -eq $image_version && -z $FORCE_PROVISIONING ]] && [[ $image_version != '0' ]] &&
+    log $INFO "current_version ($installed_version) = image_version ($release_version)" &&
+    exit 0
+[[ $current_version -gt $image_version ]] &&
+    log $ERROR "Invalid image. current_version ($installed_version) > image_version ($release_version)" &&
+    exit 1
+
+action="deploy"
+
+[[ ! -z $current_version ]] && [[ $current_version -lt $image_version ]] && action="upgrade"
+
+case $action in
+    deploy)
+        apply_cluster_config
+        apply_common_config
+        [ ! -z $VALIDATE_CONF ] && validate_config
+        # Deploy cortx
+        deploy
+        ;;
+    upgrade)
+        # Upgrade cortx
+        upgrade
+        ;;
+    *)
+        log $ERROR "Internal error. Could not determine version. Invalid image. current_version is ($installed_version) and image_version is ($release_version)"
+        ;;
+esac
+# Check if debugging is enabled
+if [ $DEBUG_FLAG = true ]; then
+    log $INFO "cortx_setup DEBUG enabled...";
+    sleep infinity;
+fi

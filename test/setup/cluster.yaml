@@ -1,0 +1,59 @@
+cluster:
+  name: cortx-cluster
+  id: 'C01'
+  node_types:
+  - name: storage_node
+    components:
+    - name: utils
+    - name: motr
+      services:
+      - io
+    - name: hare
+    - name: s3
+      services:
+      - io
+      - auth
+      - bg_consumer
+    storage:
+    - name: cvg-01
+      type: ios
+      devices:
+        metadata: /dev/sdc
+        data:
+          - /dev/sdd
+          - /dev/sde
+    - name: cvg-02
+      type: ios
+      devices:
+        metadata: /dev/sdf
+        data:
+          - /dev/sdg
+          - /dev/sdh
+  - name: control_node
+    components:
+    - name: utils
+    - name: motr
+      services:
+      - fsm
+    - name: s3
+      services:
+      - bg_producer
+      - openldap
+    - name: csm
+      services:
+      - agent
+  storage_sets:
+  - name: storage-set-1
+    durability:
+      sns: 1+0+0
+      dix: 1+0+0
+    nodes:
+    - name: pod-1
+      id: 97085a8ab7cf42669c94963929864a70
+      hostname: pod-1.colo.seagate.com
+      type: control_node
+    - name: pod-2
+      id: 8efd697708a8f7e428d3fd520c180795
+      hostname: pod-2.colo.seagate.com
+      type: storage_node
+
