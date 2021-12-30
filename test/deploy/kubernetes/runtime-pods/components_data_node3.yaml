@@ -68,7 +68,7 @@ spec:
           claimName: dev-sdi-node3
       initContainers:
       - name: cortx-setup
-        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         args:
         - /bin/sh
@@ -114,7 +114,7 @@ spec:
 
       containers:
       - name: cortx-motr-hax
-        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         args:
         - /bin/sh
@@ -132,7 +132,7 @@ spec:
         - name: local-node3
           mountPath: /etc/cortx
       - name: cortx-motr-confd
-        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         args:
         - /bin/sh
@@ -150,7 +150,7 @@ spec:
         - name: local-node3
           mountPath: /etc/cortx
       - name: cortx-ios1
-        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         args:
         - /bin/sh
@@ -185,7 +185,7 @@ spec:
         - name: sdi
           devicePath: /dev/sdi
       - name: cortx-ios2
-        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         args:
         - /bin/sh

@@ -44,7 +44,7 @@ spec:
           claimName: local-node3
       initContainers:
       - name: cortx-setup
-        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         args:
         - /bin/sh
@@ -70,7 +70,7 @@ spec:
           mountPath: /share
       containers:
       - name: cortx-motr-hax
-        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         args:
         - /bin/sh
@@ -88,7 +88,7 @@ spec:
         - name: local-node3
           mountPath: /etc/cortx
       - name: cortx-s31
-        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         args:
         - /bin/sh
@@ -106,7 +106,7 @@ spec:
         - name: local-node3
           mountPath: /etc/cortx
       - name: cortx-s32
-        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         args:
         - /bin/sh
@@ -124,7 +124,7 @@ spec:
         - name: local-node3
           mountPath: /etc/cortx
       - name: cortx-s3-auth-server
-        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         args:
         - /bin/sh
@@ -142,7 +142,7 @@ spec:
         - name: local-node3
           mountPath: /etc/cortx
       - name: cortx-s3-haproxy
-        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         args:
         - /bin/sh
@@ -171,7 +171,7 @@ spec:
         - containerPort: 28049
           name: "port-28049"
       - name: cortx-s3-bgworker
-        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         args:
         - /bin/sh

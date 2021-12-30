@@ -46,7 +46,7 @@ spec:
           claimName: local-node1
       initContainers:
       - name: cortx-setup
-        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         args:
         - /bin/sh
@@ -66,7 +66,7 @@ spec:
           mountPath: /etc/cortx/solution/secret
       containers:
       - name: cortx-ha-fault-tolerance
-        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8081
@@ -94,7 +94,7 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
       - name: cortx-ha-health-monitor
-        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8081
@@ -122,7 +122,7 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
       - name: cortx-ha-k8s-monitor
-        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8081
