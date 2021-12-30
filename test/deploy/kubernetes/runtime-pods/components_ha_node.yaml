@@ -66,6 +66,7 @@ spec:
           mountPath: /etc/cortx/solution/secret
       containers:
       - name: cortx-ha-fault-tolerance
+<<<<<<< HEAD
         image: 2.0.0-541-custom-ci
         imagePullPolicy: IfNotPresent
         ports:
@@ -76,6 +77,16 @@ spec:
         args:
           - -c
           - /opt/seagate/cortx/ha/bin/ha_start -s fault_tolerance -c yaml:///etc/cortx/cluster.conf
+=======
+        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        imagePullPolicy: IfNotPresent
+        args:
+        - /bin/sh
+        - -c
+        - set -x;
+          /opt/seagate/cortx/ha/bin/ha_start -s fault_tolerance -c yaml:///etc/cortx/cluster.conf;
+          sleep infinity;
+>>>>>>> 3c244ce477dc2e59c450770b59891b4093df5438
         volumeMounts:
         - name: solution-config
           mountPath: /etc/cortx/solution
@@ -85,6 +96,7 @@ spec:
           mountPath: /share
         - name: local-node1
           mountPath: /etc/cortx
+<<<<<<< HEAD
           - name: cortx-secret
             mountPath: /etc/cortx/solution/secret
             readOnly: true
@@ -104,6 +116,17 @@ spec:
         args:
           - -c
           - /opt/seagate/cortx/ha/bin/ha_start -s health_monitor -c yaml:///etc/cortx/cluster.conf
+=======
+      - name: cortx-ha-health-monitor
+        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        imagePullPolicy: IfNotPresent
+        args:
+        - /bin/sh
+        - -c
+        - set -x;
+          /opt/seagate/cortx/ha/bin/ha_start -s health_monitor -c yaml:///etc/cortx/cluster.conf;
+          sleep infinity;
+>>>>>>> 3c244ce477dc2e59c450770b59891b4093df5438
         volumeMounts:
         - name: solution-config
           mountPath: /etc/cortx/solution
@@ -113,6 +136,7 @@ spec:
           mountPath: /share
         - name: local-node1
           mountPath: /etc/cortx
+<<<<<<< HEAD
           - name: cortx-secret
             mountPath: /etc/cortx/solution/secret
             readOnly: true
@@ -132,6 +156,17 @@ spec:
         args:
           - -c
           - /opt/seagate/cortx/ha/bin/ha_start -s k8s_monitor -c yaml:///etc/cortx/cluster.conf
+=======
+      - name: cortx-ha-k8s-monitor
+        image: ghcr.io/seagate/cortx-all:2.0.0-latest-custom-ci
+        imagePullPolicy: IfNotPresent
+        args:
+        - /bin/sh
+        - -c
+        - set -x;
+          /opt/seagate/cortx/ha/bin/ha_start -s k8s_monitor -c yaml:///etc/cortx/cluster.conf;
+          sleep infinity;
+>>>>>>> 3c244ce477dc2e59c450770b59891b4093df5438
         volumeMounts:
         - name: solution-config
           mountPath: /etc/cortx/solution
